@@ -1,3 +1,6 @@
+# NOTE: This docker-compose.yml is for local development only.
+# In production, use environment variables or Docker secrets for credentials.
+
 services:
   db:
     image: postgres:15

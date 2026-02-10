@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
+from contextlib import asynccontextmanager
 
 from app.core.config import settings
 from app.core.database import get_db, engine, Base
@@ -8,13 +9,17 @@ from app.models import item as models
 from app.schemas import item as schemas
 from app.repositories.item import ItemRepository, PriceRepository
 
-app = FastAPI(title=settings.app_name)
 
-
-@app.on_event("startup")
-def startup_event():
-    """Create database tables on startup."""
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Lifespan context manager for startup and shutdown events."""
+    # Startup: Create database tables
     Base.metadata.create_all(bind=engine)
+    yield
+    # Shutdown: cleanup if needed
+
+
+app = FastAPI(title=settings.app_name, lifespan=lifespan)
 
 
 @app.get("/")
