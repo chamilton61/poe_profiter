@@ -19,6 +19,14 @@ services:
       timeout: 5s
       retries: 5
 
+  frontend:
+    build: ./frontend
+    container_name: poe_profiter_frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend/poe_profiter:/app
+
   backend:
     build: ./backend
     container_name: poe_profiter_backend
