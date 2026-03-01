@@ -21,7 +21,7 @@ API docs: `http://localhost:8000/docs` (Swagger) or `http://localhost:8000/redoc
 To run without Docker, you need a local PostgreSQL instance. Copy `.env.example` to `.env` and update `DATABASE_URL`, then:
 
 ```bash
-pip install -r requirements.txt
+uv sync
 uvicorn app.main:app --reload
 ```
 
@@ -47,7 +47,7 @@ There is no test suite yet. No test runner is configured.
 
 - `app/models/item.py`: Create a parent base class with `id`, `created_at`, `updated_at` for all models to inherit
 - `app/repositories/base.py`: Wrap commits in a context manager to support chaining repo actions without intermediate DB commits
-- `requirements.txt`: Switch from plain `requirements.txt` to Poetry for dependency management
+- Dependencies are managed with `uv` (`pyproject.toml` + `uv.lock`); run `uv sync` to install
 
 ## Adding New Features
 
