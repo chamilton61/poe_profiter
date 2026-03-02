@@ -41,7 +41,6 @@ uvicorn app.main:app --reload
 
 ## Tests
 
-<<<<<<< HEAD
 Tests live in `tests/`, mirroring the `app/` folder structure:
 
 ```
@@ -68,19 +67,12 @@ docker compose --profile test run --rm test
 ```
 
 The `test` service in `docker-compose.yml` builds from the `test` stage of the `Dockerfile`, which extends the production `base` stage and adds dev dependencies (`pytest`, `httpx`) and the `tests/` directory.
-=======
-There is no test suite yet. No test runner is configured.
->>>>>>> 00c5686 (Add CLAUDE.md with architecture and development guidance)
 
 ## Known TODOs in the Codebase
 
 - `app/models/item.py`: Create a parent base class with `id`, `created_at`, `updated_at` for all models to inherit
 - `app/repositories/base.py`: Wrap commits in a context manager to support chaining repo actions without intermediate DB commits
-<<<<<<< HEAD
-- Dependencies are managed with `uv` (`pyproject.toml` + `uv.lock`); run `uv sync` to install
-=======
 - `requirements.txt`: Switch from plain `requirements.txt` to Poetry for dependency management
->>>>>>> 00c5686 (Add CLAUDE.md with architecture and development guidance)
 
 ## Adding New Features
 

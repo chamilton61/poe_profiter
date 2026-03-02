@@ -22,6 +22,7 @@ EXPOSE 8000
 
 # Run the application
 CMD ["uv", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+<<<<<<< HEAD
 
 
 FROM base AS test
@@ -33,3 +34,5 @@ RUN uv sync --frozen
 COPY tests/ ./tests/
 
 CMD ["uv", "run", "pytest", "tests/", "-v"]
+=======
+>>>>>>> d763244 (removed requirements and added manager)
