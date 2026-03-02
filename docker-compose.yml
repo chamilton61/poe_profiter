@@ -40,7 +40,6 @@ services:
         condition: service_healthy
     volumes:
       - ./backend/app:/app/app
-<<<<<<< HEAD
 
   test:
     build:
@@ -48,8 +47,6 @@ services:
       target: test
     profiles:
       - test
-=======
->>>>>>> 2aea0da (removed unecessary command in compose)
 
 volumes:
   postgres_data:
