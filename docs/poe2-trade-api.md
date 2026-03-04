@@ -294,17 +294,95 @@ GET /api/trade2/fetch/itemId1,itemId2,itemId3?query=AbCdEf123456
 
 ### Response
 
-Returns full item data for each requested ID, including listing price, seller account, item properties, mods, etc.
+Returns full item data for each requested ID. Each result object contains a `listing` object with seller info, price, stash location, and the pre-formatted whisper string. Crucially, it also includes `whisper_token` and `hideout_token` fields used to trigger the Direct Whisper and Visit Hideout actions.
+
+```json
+{
+  "result": [
+    {
+      "id": "itemId1",
+      "listing": {
+        "method": "psapi",
+        "indexed": "2025-01-15T10:23:00Z",
+        "stash": {
+          "name": "Premium Stash",
+          "x": 2,
+          "y": 0
+        },
+        "whisper": "@CharacterName Hi, I would like to buy your Vaal Regalia listed for 10 chaos in Standard (stash tab \"Premium Stash\"; position: left 3, top 1)",
+        "whisper_token": "<opaque token string>",
+        "hideout_token": "<opaque token string>",
+        "account": {
+          "name": "AccountName",
+          "lastCharacterName": "CharacterName",
+          "online": { "league": "Standard" },
+          "language": "en_US"
+        },
+        "price": {
+          "type": "~price",
+          "amount": 10,
+          "currency": "chaos"
+        }
+      },
+      "item": { ... }
+    }
+  ]
+}
+```
+
+| Field | Description |
+|---|---|
+| `listing.whisper` | Pre-formatted trade message string — use this for clipboard copy |
+| `listing.whisper_token` | Opaque token — pass to `/api/trade2/whisper` to send a Direct Whisper |
+| `listing.hideout_token` | Opaque token — pass to `/api/trade2/whisper` to trigger Visit Hideout |
+| `listing.stash` | Stash tab name and x/y coordinates of the item |
+| `listing.account.name` | Seller's account name |
+| `listing.account.lastCharacterName` | Seller's current character name |
+| `listing.account.online` | Present if seller is online; contains `league` |
+| `listing.price` | `type`, `amount`, `currency` of the listing price |
+
+---
+
+## Whisper / Visit Hideout Endpoint
+
+```
+POST /api/trade2/whisper
+```
+
+This powers both the **Direct Whisper** and **Visit Hideout** buttons on the trade site. Requires auth (`POESESSID`) and the game client to be running and logged in on the same account.
+
+### Request body
+
+For Direct Whisper, send the `whisper_token`:
+```json
+{ "token": "<listing.whisper_token>" }
+```
+
+For Visit Hideout, send the `hideout_token`:
+```json
+{ "token": "<listing.hideout_token>" }
+```
+
+Both tokens come from the fetch endpoint `listing` object. The token encodes the target account/character and action type — GGG's servers use it to route the message/action to the correct game client session.
+
+**Notes:**
+- Requires `POESESSID` cookie (the buyer's session)
+- The game client must be running and logged in as the same account
+- If the account is not in-game, the request will fail or return an error
 
 ---
 
 ## Typical Flow
 
 ```
-1. GET  /api/trade2/data/stats        → get stat filter IDs
-2. POST /api/trade2/search/poe2/{league}  → submit query, get { id, result[], total }
-3. GET  /api/trade2/fetch/{ids[0..9]}?query={id}  → get full item data
+1. GET  /api/trade2/data/stats               → get stat filter IDs
+2. POST /api/trade2/search/poe2/{league}     → submit query, get { id, result[], total }
+3. GET  /api/trade2/fetch/{ids[0..9]}?query={id}  → get full item data incl. tokens
    (repeat step 3 in batches of 10, respecting rate limits)
+4a. POST /api/trade2/whisper { token: whisper_token }   → Direct Whisper seller
+4b. POST /api/trade2/whisper { token: hideout_token }   → Visit seller's hideout
+    — OR —
+    Copy listing.whisper string to clipboard for manual paste
 ```
 
 ---
