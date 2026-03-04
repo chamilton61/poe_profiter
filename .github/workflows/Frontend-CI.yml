@@ -17,6 +17,7 @@ jobs:
         working-directory: frontend/poe_profiter
 
     strategy:
+      fail-fast: false
       matrix:
         command:
           - format:check
