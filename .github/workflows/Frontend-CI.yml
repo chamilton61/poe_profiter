@@ -83,11 +83,11 @@ jobs:
               body: `Preview deployed: ${url}`
             });
 
-      - name: Delete PR preview
-        if: github.event.action == 'closed'
-        run: |
-          git clone --branch gh-pages https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} temp
-          cd temp
-          git rm -r pr-${{ github.event.pull_request.number }}
-          git commit -m "Remove PR preview #${{ github.event.pull_request.number }}"
-          git push
+  close-preview:
+    if: github.event.action == 'closed'
+    runs-on: ubuntu-slim
+    steps:
+      - uses: actions/checkout@v6
+      - run: rm -rf gh-pages/pr-${{ github.event.pull_request.number }}
+    
+    
