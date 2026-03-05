@@ -84,10 +84,25 @@ jobs:
             });
 
   close-preview:
-    if: github.event.action == 'closed'
     runs-on: ubuntu-slim
+    if: github.event.action == 'closed'
     steps:
-      - uses: actions/checkout@v6
-      - run: rm -rf gh-pages/pr-${{ github.event.pull_request.number }}
-    
+      - name: Checkout gh-pages branch
+        uses: actions/checkout@v6
+        with:
+          ref: gh-pages   # Checkout the gh-pages branch
+          fetch-depth: 0  # Full history needed to push deletes
+
+      - name: Remove PR folder
+        run: |
+          echo "Deleting PR preview folder for PR #${{ github.event.pull_request.number }}"
+          rm -rf pr-${{ github.event.pull_request.number }}
+
+      - name: Commit and push deletion
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Remove preview for PR #${{ github.event.pull_request.number }}" || echo "Nothing to commit"
+          git push origin gh-pages
     
