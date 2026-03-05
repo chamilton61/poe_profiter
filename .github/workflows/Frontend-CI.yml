@@ -23,6 +23,7 @@ jobs:
           - format:check
           - type-check
           - lint
+          - test
 
     steps:
       - name: Checkout repo
