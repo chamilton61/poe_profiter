@@ -95,6 +95,8 @@ jobs:
 
   close-preview:
     runs-on: ubuntu-slim
+    permissions:
+      contents: write
     if: github.event.action == 'closed'
     steps:
       - name: Checkout gh-pages branch
