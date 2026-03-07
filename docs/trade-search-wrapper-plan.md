@@ -14,7 +14,7 @@ We want a new endpoint that wraps the PoE2 trade API search+fetch flow and persi
 - **Price**: Kept — a new Price row is added every time we observe the listing's price
 - **Saved per listing**: `poe_id`, `listing.indexed`, `listing.account.name`, all item fields except `extended`; price (`listing.price.*`) saved to Price table
 - **Tokens**: Not saved
-- **Auth**: `POESESSID` stored in env/config, sent as cookie on all trade API requests
+- **Auth**: `POESESSID` optionally provided by the frontend as a field in the request body; forwarded as a cookie on trade API requests if present
 
 ---
 
@@ -76,6 +76,7 @@ item_snapshot:  dict
 
 **Add `TradeSearchRequest`** (new input schema):
 ```
+poesessid:   Optional[str]    ← caller's PoE session token, forwarded as cookie if provided
 league:      str
 name:        Optional[str]
 type:        Optional[str]
@@ -113,29 +114,17 @@ items:       List[Item]
 
 ### `app/services/poe_trade.py` (new file)
 
-Async HTTP client (`httpx`) for the PoE2 trade API. Reads `POESESSID` from `settings`. Sends cookie + `User-Agent` header on every request.
+Async HTTP client (`httpx`) for the PoE2 trade API. Accepts `POESESSID` as a parameter (passed in from the route). Sends cookie + `User-Agent` header on every request.
 
 ```python
-async def search(league: str, query_body: dict) -> dict:
+async def search(league: str, query_body: dict, poesessid: str) -> dict:
     # POST /api/trade2/search/poe2/{league}
     # returns { "id": str, "result": List[str], "total": int }
 
-async def fetch(item_ids: List[str], query_id: str) -> List[dict]:
+async def fetch(item_ids: List[str], query_id: str, poesessid: str) -> List[dict]:
     # GET /api/trade2/fetch/{ids}?query={query_id}
     # returns list of full listing objects
 ```
-
----
-
-## Config Change
-
-### `app/core/config.py`
-
-Add `poesessid: str = ""` to `Settings`.
-
-### `.env.example`
-
-Add `POESESSID=` entry.
 
 ---
 
@@ -151,9 +140,9 @@ POST /trade/search
 
 **Route logic:**
 1. Build trade API query body from `TradeSearchRequest` fields — or use `raw_query` directly if provided
-2. `await poe_trade.search(req.league, query_body)` → `{id, result[], total}`
+2. `await poe_trade.search(req.league, query_body, req.poesessid)` → `{id, result[], total}`
 3. `ids = result[page_offset : page_offset + page_size]`
-4. `await poe_trade.fetch(ids, query_id)` → list of full listing objects
+4. `await poe_trade.fetch(ids, query_id, req.poesessid)` → list of full listing objects
 5. For each listing result:
    a. Extract `poe_id = result["id"]`, item fields from `result["item"]`, listing fields from `result["listing"]`
    b. `item = ItemRepository.get_by_poe_id(poe_id)` — if None, create Item row
@@ -170,20 +159,63 @@ POST /trade/search
 | `app/models/item.py` | Rewrite `Item`, add `price_type` to `Price` |
 | `app/schemas/item.py` | Rewrite `ItemBase`, update `PriceBase`, add `TradeSearchRequest` + `TradeSearchResponse` |
 | `app/repositories/item.py` | Replace `get_by_name` → `get_by_poe_id` on `ItemRepository` |
-| `app/core/config.py` | Add `poesessid` setting |
 | `app/main.py` | Add `POST /trade/search` route |
 | `app/services/poe_trade.py` | New file — async PoE2 API HTTP client |
-| `.env.example` | Add `POESESSID=` |
 
 ---
 
 ## Verification
 
-1. Add `POESESSID=<your_session>` to `.env`
-2. `docker-compose up --build`
-3. `POST /trade/search` with `{"league": "Standard", "name": "Tabula Rasa", "page_size": 5, "page_offset": 0}`
+1. `docker-compose up --build`
+2. `POST /trade/search` with `{"poesessid": "<your_session>", "league": "Standard", "name": "Tabula Rasa", "page_size": 5, "page_offset": 0}`
 4. Confirm response has 5 items with price, seller, and item snapshot
 5. Re-run — confirm same `Item` rows exist (no duplicates by `poe_id`) but new `Price` rows added
 6. Repeat with `page_offset: 5` — confirm different items returned
-7. `POST /trade/search` with `{"league": "Standard", "raw_query": {...}, "page_size": 3, "page_offset": 0}` — confirm raw query path works
+7. `POST /trade/search` with `{"poesessid": "<your_session>", "league": "Standard", "raw_query": {...}, "page_size": 3, "page_offset": 0}` — confirm raw query path works
 8. `uv run pytest tests/ -v` — note: existing tests will need updating due to Item model rewrite
+
+---
+
+## Implementation Steps
+
+Each step is self-contained and can be committed independently.
+
+### Step 1 — Add `httpx` dependency
+
+Add `httpx` to project dependencies (`pyproject.toml` / `requirements.txt`) so the async trade API client can be built in a later step. Verify it installs cleanly.
+
+### Step 2 — Rewrite `Item` model, update `Price` model (`app/models/item.py`)
+
+- Replace all existing `Item` columns with the new schema (`poe_id`, `name`, `base_type`, `category`, `seller_account`, `indexed_at`, `item_snapshot`, `created_at`, `updated_at`)
+- Add `price_type` column to `Price`
+- No other files touched in this step
+
+### Step 3 — Update schemas (`app/schemas/item.py`)
+
+- Rewrite `ItemBase` fields to match the new model
+- Add `price_type: str` to `PriceBase`
+- Add `TradeSearchRequest` and `TradeSearchResponse` schemas
+- No other files touched in this step
+
+### Step 4 — Update repository (`app/repositories/item.py`)
+
+- Replace `get_by_name` with `get_by_poe_id(poe_id: str)` on `ItemRepository`
+- No other files touched in this step
+
+### Step 5 — Update existing tests
+
+- Update model, schema, and repository tests to reflect the new `Item` shape and the removed `get_by_name` / added `get_by_poe_id`
+- All existing tests should pass before proceeding to new functionality
+
+### Step 6 — Build the PoE trade service (`app/services/poe_trade.py`)
+
+- Create `app/services/` package (`__init__.py`)
+- Implement `search()` and `fetch()` as async functions using `httpx`
+- Cookie is only attached when `poesessid` is not `None`
+- No route wiring in this step — service can be tested in isolation
+
+### Step 7 — Add `POST /trade/search` route (`app/main.py`)
+
+- Wire up the route using `TradeSearchRequest` / `TradeSearchResponse`
+- Implement the full search → fetch → upsert-item → append-price loop
+- Add tests for the new route (mock the `poe_trade` service calls)
