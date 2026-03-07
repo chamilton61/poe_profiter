@@ -1,35 +1,32 @@
+from datetime import datetime, timezone
+
 from app.repositories.item import ItemRepository, PriceRepository
 
 
-def test_get_by_name_found(db):
+def item_data(**kwargs):
+    defaults = {
+        "poe_id": "default_id",
+        "base_type": "Base",
+        "category": "Currency",
+        "seller_account": "seller",
+        "indexed_at": datetime.now(timezone.utc),
+        "item_snapshot": {},
+    }
+    defaults.update(kwargs)
+    return defaults
+
+
+def test_get_by_poe_id_found(db):
     repo = ItemRepository(db)
-    repo.create({"name": "Mirror of Kalandra", "category": "Currency"})
-    found = repo.get_by_name("Mirror of Kalandra")
+    repo.create(item_data(poe_id="abc123"))
+    found = repo.get_by_poe_id("abc123")
     assert found is not None
-    assert found.name == "Mirror of Kalandra"
+    assert found.poe_id == "abc123"
 
 
-def test_get_by_name_not_found(db):
+def test_get_by_poe_id_not_found(db):
     repo = ItemRepository(db)
-    assert repo.get_by_name("Nonexistent Item") is None
-
-
-def test_get_by_category_filters(db):
-    repo = ItemRepository(db)
-    repo.create({"name": "Chaos Orb", "category": "Currency"})
-    repo.create({"name": "Divine Orb", "category": "Currency"})
-    repo.create({"name": "Oni-Goroshi", "category": "Weapon"})
-    results = repo.get_by_category("Currency")
-    assert len(results) == 2
-    assert all(item.category == "Currency" for item in results)
-
-
-def test_get_by_category_pagination(db):
-    repo = ItemRepository(db)
-    for i in range(5):
-        repo.create({"name": f"Currency {i}", "category": "Currency"})
-    page = repo.get_by_category("Currency", skip=1, limit=2)
-    assert len(page) == 2
+    assert repo.get_by_poe_id("nonexistent") is None
 
 
 def test_price_get_by_item_id(db, sample_item, sample_price):
@@ -42,6 +39,6 @@ def test_price_get_by_item_id(db, sample_item, sample_price):
 def test_price_get_by_item_id_pagination(db, sample_item):
     repo = PriceRepository(db)
     for i in range(4):
-        repo.create({"item_id": sample_item.id, "price": float(i), "currency": "chaos"})
+        repo.create({"item_id": sample_item.id, "price_type": "~price", "price": float(i), "currency": "chaos"})
     page = repo.get_by_item_id(sample_item.id, skip=1, limit=2)
     assert len(page) == 2

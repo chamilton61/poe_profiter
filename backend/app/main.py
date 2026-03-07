@@ -59,12 +59,6 @@ def read_item(item_id: int, db: Session = Depends(get_db)):
     return item
 
 
-@app.get("/items/category/{category}", response_model=List[schemas.Item])
-def read_items_by_category(category: str, skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    """Get items by category."""
-    repo = ItemRepository(db)
-    return repo.get_by_category(category, skip=skip, limit=limit)
-
 
 # Price endpoints
 @app.post("/items/{item_id}/prices/", response_model=schemas.Price)
