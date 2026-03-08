@@ -1,4 +1,5 @@
 import pytest
+from datetime import datetime, timezone
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
@@ -52,7 +53,15 @@ def client(engine, db):
 
 @pytest.fixture
 def sample_item(db):
-    item = Item(name="Mirror of Kalandra", category="Currency")
+    item = Item(
+        poe_id="abc123",
+        name="Mirror of Kalandra",
+        base_type="Mirror of Kalandra",
+        category="Currency",
+        seller_account="seller1",
+        indexed_at=datetime.now(timezone.utc),
+        item_snapshot={"typeLine": "Mirror of Kalandra"},
+    )
     db.add(item)
     db.commit()
     db.refresh(item)
@@ -61,7 +70,12 @@ def sample_item(db):
 
 @pytest.fixture
 def sample_price(db, sample_item):
-    price = Price(item_id=sample_item.id, price=100.0, currency="divine")
+    price = Price(
+        item_id=sample_item.id,
+        price_type="~price",
+        price=100.0,
+        currency="divine",
+    )
     db.add(price)
     db.commit()
     db.refresh(price)

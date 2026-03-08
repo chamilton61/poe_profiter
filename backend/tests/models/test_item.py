@@ -1,18 +1,28 @@
+from datetime import datetime, timezone
+
 from app.models.item import Item, Price
 
 
 def test_item_create(db):
-    item = Item(name="Test Item", category="Currency")
+    item = Item(
+        poe_id="test123",
+        name="Test Item",
+        base_type="Test Base",
+        category="Currency",
+        seller_account="seller",
+        indexed_at=datetime.now(timezone.utc),
+        item_snapshot={"typeLine": "Test Base"},
+    )
     db.add(item)
     db.commit()
     db.refresh(item)
     assert item.id is not None
-    assert item.name == "Test Item"
+    assert item.poe_id == "test123"
     assert item.created_at is not None
 
 
 def test_price_create(db, sample_item):
-    price = Price(item_id=sample_item.id, price=42.5, currency="chaos")
+    price = Price(item_id=sample_item.id, price_type="~price", price=42.5, currency="chaos")
     db.add(price)
     db.commit()
     db.refresh(price)
