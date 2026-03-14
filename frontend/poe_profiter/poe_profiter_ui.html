@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PoE Profiter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --poe-bg: #0d0d0f;
+    --poe-surface: #13131a;
+    --poe-card: #181820;
+    --poe-border: #2a2a3a;
+    --poe-border-light: #3a3a50;
+    --poe-gold: #c8a96e;
+    --poe-gold-dim: #8a7050;
+    --poe-amber: #e8a830;
+    --poe-text: #c8c4b8;
+    --poe-text-dim: #7a7568;
+    --poe-text-bright: #e8e4d8;
+    --poe-red: #c44;
+    --poe-green: #4a8;
+    --poe-blue: #5af;
+    --poe-magic: #8888ff;
+    --poe-unique: #af6025;
+    --font-display: 'Cinzel', serif;
+    --font-body: 'Crimson Pro', Georgia, serif;
+  }
+
+  body { background: var(--poe-bg); color: var(--poe-text); font-family: var(--font-body); font-size: 16px; min-height: 100vh; }
+
+  .page { min-height: 100vh; display: none; flex-direction: column; }
+  .page.active { display: flex; }
+
+  /* ======== HEADER ======== */
+  .site-header {
+    background: linear-gradient(180deg, #1a1510 0%, #0f0e14 100%);
+    border-bottom: 1px solid var(--poe-gold-dim);
+    padding: 0 1.5rem;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 64px;
+    position: relative;
+  }
+  .site-header::after {
+    content: '';
+    position: absolute; bottom: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--poe-gold), transparent);
+  }
+  .site-title {
+    font-family: var(--font-display);
+    font-size: 22px;
+    letter-spacing: 3px;
+    color: var(--poe-gold);
+    text-transform: uppercase;
+    cursor: pointer;
+    user-select: none;
+  }
+  .header-right { display: flex; align-items: center; gap: 12px; }
+
+  .nav-select {
+    background: rgba(200,169,110,0.08);
+    border: 1px solid var(--poe-gold-dim);
+    color: var(--poe-gold);
+    font-family: var(--font-display);
+    font-size: 11px;
+    letter-spacing: 1px;
+    padding: 6px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+    outline: none;
+  }
+  .nav-select option { background: #1a1510; color: var(--poe-text); }
+
+  .settings-btn {
+    background: rgba(200,169,110,0.08);
+    border: 1px solid var(--poe-gold-dim);
+    color: var(--poe-gold);
+    font-size: 18px;
+    width: 36px; height: 36px;
+    border-radius: 3px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+    transition: background 0.15s;
+  }
+  .settings-btn:hover { background: rgba(200,169,110,0.15); }
+
+  .settings-menu {
+    position: absolute;
+    top: calc(100% + 8px); right: 0;
+    background: #1a1810;
+    border: 1px solid var(--poe-gold-dim);
+    border-radius: 4px;
+    min-width: 240px;
+    z-index: 100;
+    display: none;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+  }
+  .settings-menu.open { display: block; }
+  .settings-section { padding: 12px 14px; border-bottom: 1px solid var(--poe-border); }
+  .settings-section:last-child { border-bottom: none; }
+  .settings-label { font-family: var(--font-display); font-size: 10px; letter-spacing: 1.5px; color: var(--poe-gold-dim); text-transform: uppercase; margin-bottom: 8px; }
+  .settings-input {
+    width: 100%; background: var(--poe-bg); border: 1px solid var(--poe-border);
+    color: var(--poe-text); font-family: var(--font-body); font-size: 13px;
+    padding: 6px 8px; border-radius: 3px; outline: none;
+  }
+  .settings-input:focus { border-color: var(--poe-gold-dim); }
+  .settings-save-btn, .settings-logout-btn {
+    width: 100%; padding: 7px; border-radius: 3px; cursor: pointer;
+    font-family: var(--font-display); font-size: 10px; letter-spacing: 1px;
+    text-transform: uppercase; margin-top: 8px; border: 1px solid;
+    transition: background 0.15s;
+  }
+  .settings-save-btn { background: rgba(200,169,110,0.1); border-color: var(--poe-gold-dim); color: var(--poe-gold); }
+  .settings-save-btn:hover { background: rgba(200,169,110,0.2); }
+  .settings-logout-btn { background: rgba(180,50,50,0.1); border-color: #663; color: #c88; }
+  .settings-logout-btn:hover { background: rgba(180,50,50,0.2); }
+
+  /* ======== LOGIN ======== */
+  .login-page {
+    min-height: 100vh; background: var(--poe-bg);
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
+    background-image: radial-gradient(ellipse at 50% 0%, rgba(200,169,110,0.05) 0%, transparent 60%);
+  }
+  .login-orb {
+    width: 80px; height: 80px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #c8a96e, #5a3a10);
+    margin-bottom: 24px;
+    box-shadow: 0 0 40px rgba(200,169,110,0.2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 32px;
+  }
+  .login-title { font-family: var(--font-display); font-size: 28px; letter-spacing: 4px; color: var(--poe-gold); margin-bottom: 4px; }
+  .login-subtitle { font-size: 14px; color: var(--poe-text-dim); letter-spacing: 2px; margin-bottom: 32px; }
+  .login-card {
+    background: var(--poe-card);
+    border: 1px solid var(--poe-border);
+    border-top: 1px solid var(--poe-gold-dim);
+    border-radius: 4px;
+    padding: 28px 32px;
+    width: 340px;
+  }
+  .form-group { margin-bottom: 16px; }
+  .form-label { display: block; font-family: var(--font-display); font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--poe-gold-dim); margin-bottom: 6px; }
+  .form-input {
+    width: 100%; background: var(--poe-bg); border: 1px solid var(--poe-border);
+    color: var(--poe-text-bright); font-family: var(--font-body); font-size: 16px;
+    padding: 9px 12px; border-radius: 3px; outline: none;
+    transition: border-color 0.15s;
+  }
+  .form-input:focus { border-color: var(--poe-gold-dim); }
+  .login-btn {
+    width: 100%; padding: 10px; margin-top: 8px;
+    background: linear-gradient(135deg, #3a2a10, #5a4020);
+    border: 1px solid var(--poe-gold-dim);
+    color: var(--poe-gold); font-family: var(--font-display);
+    font-size: 12px; letter-spacing: 2px; text-transform: uppercase;
+    border-radius: 3px; cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s;
+  }
+  .login-btn:hover {
+    background: linear-gradient(135deg, #4a3a1a, #6a5030);
+    box-shadow: 0 0 16px rgba(200,169,110,0.15);
+  }
+  .login-error { color: var(--poe-red); font-size: 13px; margin-top: 8px; text-align: center; display: none; }
+
+  /* ======== OVERVIEW PAGE ======== */
+  .main-content { flex: 1; padding: 24px; overflow-y: auto; }
+  .page-title {
+    font-family: var(--font-display); font-size: 14px; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--poe-gold-dim); margin-bottom: 20px;
+    padding-bottom: 10px; border-bottom: 1px solid var(--poe-border);
+  }
+  .profiles-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+  }
+
+  /* ======== PROFILE CARD ======== */
+  .profile-card {
+    background: var(--poe-card);
+    border: 1px solid var(--poe-border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .profile-card-header {
+    padding: 12px 16px;
+    background: linear-gradient(180deg, rgba(200,169,110,0.06) 0%, transparent 100%);
+    border-bottom: 1px solid var(--poe-border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .profile-name { font-family: var(--font-display); font-size: 13px; letter-spacing: 1px; color: var(--poe-gold); }
+  .profile-badge { font-size: 11px; color: var(--poe-text-dim); background: var(--poe-surface); padding: 2px 8px; border-radius: 10px; border: 1px solid var(--poe-border); }
+  .profile-items { padding: 8px 0; }
+
+  /* ======== ITEM ROW ======== */
+  .item-row {
+    padding: 8px 16px;
+    display: flex; align-items: center; gap: 10px;
+    border-bottom: 1px solid rgba(42,42,58,0.5);
+    cursor: pointer;
+    transition: background 0.1s;
+    position: relative;
+  }
+  .item-row:last-child { border-bottom: none; }
+  .item-row:hover { background: rgba(200,169,110,0.04); }
+  .item-icon {
+    width: 36px; height: 36px; border-radius: 3px;
+    background: var(--poe-surface); border: 1px solid var(--poe-border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; flex-shrink: 0;
+  }
+  .item-info { flex: 1; min-width: 0; }
+  .item-name { font-size: 14px; color: var(--poe-magic); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .item-name.unique { color: var(--poe-unique); }
+  .item-name.rare { color: #e8e830; }
+  .item-stats-toggle { font-size: 11px; color: var(--poe-text-dim); cursor: pointer; }
+  .item-stats {
+    display: none; padding: 6px 0; font-size: 12px;
+    color: var(--poe-text-dim); line-height: 1.6;
+  }
+  .item-stats.open { display: block; }
+  .item-stats span { color: var(--poe-magic); }
+  .item-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+  .item-price { font-family: var(--font-display); font-size: 13px; color: var(--poe-amber); white-space: nowrap; }
+  .item-roi { font-size: 11px; white-space: nowrap; }
+  .item-roi.positive { color: var(--poe-green); }
+  .item-roi.negative { color: var(--poe-red); }
+  .whisper-btn {
+    padding: 3px 8px; font-size: 10px; border-radius: 2px; cursor: pointer;
+    border: 1px solid; font-family: var(--font-display); letter-spacing: 0.5px;
+    transition: background 0.15s; white-space: nowrap;
+  }
+  .whisper-btn.enabled { background: rgba(90,170,255,0.08); border-color: #2a5a8a; color: var(--poe-blue); }
+  .whisper-btn.enabled:hover { background: rgba(90,170,255,0.15); }
+  .whisper-btn.disabled { background: rgba(80,80,100,0.1); border-color: #333345; color: #555570; cursor: not-allowed; }
+
+  .profile-footer { padding: 10px 16px; border-top: 1px solid var(--poe-border); display: flex; justify-content: flex-end; }
+  .details-btn {
+    padding: 5px 14px; background: rgba(200,169,110,0.08);
+    border: 1px solid var(--poe-gold-dim); color: var(--poe-gold);
+    font-family: var(--font-display); font-size: 10px; letter-spacing: 1px;
+    text-transform: uppercase; border-radius: 2px; cursor: pointer;
+    transition: background 0.15s;
+  }
+  .details-btn:hover { background: rgba(200,169,110,0.16); }
+
+  /* ======== DETAILS PAGE ======== */
+  .details-back {
+    display: flex; align-items: center; gap: 8px;
+    font-family: var(--font-display); font-size: 10px; letter-spacing: 1px;
+    text-transform: uppercase; color: var(--poe-gold-dim); cursor: pointer;
+    margin-bottom: 20px; width: fit-content;
+  }
+  .details-back:hover { color: var(--poe-gold); }
+  .details-layout { display: grid; grid-template-columns: 280px 1fr; gap: 20px; }
+  @media (max-width: 700px) { .details-layout { grid-template-columns: 1fr; } }
+
+  .details-sidebar { display: flex; flex-direction: column; gap: 12px; }
+  .info-card {
+    background: var(--poe-card); border: 1px solid var(--poe-border);
+    border-radius: 4px; padding: 14px 16px;
+  }
+  .info-card-title {
+    font-family: var(--font-display); font-size: 10px; letter-spacing: 1.5px;
+    text-transform: uppercase; color: var(--poe-gold-dim);
+    margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--poe-border);
+  }
+  .info-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; font-size: 14px; }
+  .info-key { color: var(--poe-text-dim); }
+  .info-val { color: var(--poe-text-bright); font-weight: 600; }
+  .info-val.green { color: var(--poe-green); }
+  .info-val.amber { color: var(--poe-amber); }
+  .info-val.magic { color: var(--poe-magic); }
+  .description-text { font-size: 14px; color: var(--poe-text); line-height: 1.7; font-style: italic; }
+
+  .material-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid rgba(42,42,58,0.4); font-size: 13px; }
+  .material-row:last-child { border-bottom: none; }
+  .mat-name { color: var(--poe-text); }
+  .mat-price { color: var(--poe-amber); font-family: var(--font-display); font-size: 12px; }
+
+  .details-main { min-width: 0; }
+  .items-card { background: var(--poe-card); border: 1px solid var(--poe-border); border-radius: 4px; }
+  .items-card-header { padding: 12px 16px; border-bottom: 1px solid var(--poe-border); }
+  .items-count { font-size: 13px; color: var(--poe-text-dim); }
+
+  .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--poe-green); display: inline-block; margin-right: 6px; animation: pulse 2s ease-in-out infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- LOGIN PAGE -->
+  <div id="login-page" class="page login-page active">
+    <div class="login-orb">⚗</div>
+    <div class="login-title">PoE Profiter</div>
+    <div class="login-subtitle">Trade Intelligence System</div>
+    <div class="login-card">
+      <div class="form-group">
+        <label class="form-label">Username</label>
+        <input class="form-input" id="login-user" type="text" placeholder="Exile" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input class="form-input" id="login-pass" type="password" placeholder="••••••••" />
+      </div>
+      <button class="login-btn" id="login-btn">Enter the League</button>
+      <div class="login-error" id="login-error">Invalid credentials. Try again.</div>
+    </div>
+  </div>
+
+  <!-- OVERVIEW PAGE -->
+  <div id="overview-page" class="page" style="flex-direction:column;">
+    <header class="site-header">
+      <div class="site-title" onclick="navigate('overview')">PoE Profiter</div>
+      <div class="header-right">
+        <select class="nav-select" id="profile-nav" onchange="handleProfileNav(this.value)">
+          <option value="">— Go to Profile —</option>
+          <option value="chaos-recipe">Chaos Recipe Farm</option>
+          <option value="div-card-flip">Divine Card Flip</option>
+          <option value="beast-craft">Beast Crafting</option>
+        </select>
+        <div class="settings-btn" id="settings-toggle" onclick="toggleSettings()">⚙</div>
+        <div class="settings-menu" id="settings-menu">
+          <div class="settings-section">
+            <div class="settings-label">POESESSID</div>
+            <input class="settings-input" id="poesessid-input" type="text" placeholder="Paste session ID..." />
+            <button class="settings-save-btn" onclick="saveSessionId()">Save Session ID</button>
+            <div id="session-status" style="font-size:12px;color:var(--poe-green);margin-top:6px;display:none;">✓ Session ID saved — enhanced features enabled</div>
+          </div>
+          <div class="settings-section">
+            <button class="settings-logout-btn" onclick="doLogout()">Logout</button>
+          </div>
+        </div>
+      </div>
+    </header>
+    <div class="main-content">
+      <div class="page-title"><span class="live-dot"></span>Search Profiles — Live</div>
+      <div class="profiles-grid" id="profiles-grid"></div>
+    </div>
+  </div>
+
+  <!-- DETAILS PAGE -->
+  <div id="details-page" class="page" style="flex-direction:column;">
+    <header class="site-header">
+      <div class="site-title" onclick="navigate('overview')">PoE Profiter</div>
+      <div class="header-right">
+        <select class="nav-select" id="profile-nav-2" onchange="handleProfileNav(this.value)">
+          <option value="">— Go to Profile —</option>
+          <option value="chaos-recipe">Chaos Recipe Farm</option>
+          <option value="div-card-flip">Divine Card Flip</option>
+          <option value="beast-craft">Beast Crafting</option>
+        </select>
+        <div class="settings-btn" onclick="toggleSettings2()">⚙</div>
+        <div class="settings-menu" id="settings-menu-2">
+          <div class="settings-section">
+            <div class="settings-label">POESESSID</div>
+            <input class="settings-input" id="poesessid-input-2" type="text" placeholder="Paste session ID..." />
+            <button class="settings-save-btn" onclick="saveSessionId2()">Save Session ID</button>
+            <div id="session-status-2" style="font-size:12px;color:var(--poe-green);margin-top:6px;display:none;">✓ Session ID saved</div>
+          </div>
+          <div class="settings-section">
+            <button class="settings-logout-btn" onclick="doLogout()">Logout</button>
+          </div>
+        </div>
+      </div>
+    </header>
+    <div class="main-content" id="details-content"></div>
+  </div>
+</div>
+
+<script>
+const state = { poesessid: null, currentProfile: null, loggedIn: false };
+
+const profiles = [
+  {
+    id: 'chaos-recipe',
+    name: 'Chaos Recipe Farm',
+    description: 'Identifies underpriced rare items that complete full chaos recipe sets. Targets 60–74 ilvl rares with low vendor prices that can be flipped for chaos orbs.',
+    maxProfitPrice: '12c',
+    gamblingMethod: 'Vendor Recipe — full unidentified set',
+    materials: [
+      { name: 'Chaos Orb', price: '1:1' },
+      { name: 'Orb of Alteration', price: '~0.3c' },
+      { name: 'Vendor Scroll', price: 'Free' },
+    ],
+    notes: 'Target ilvl 60-74 items only. Two-handed or chest + all slots needed.',
+    items: [
+      { icon: '⚔', name: 'Gale Edge Rapier', rarity: 'rare', cost: '1c', roi: '+340%', roiSign: 1, stats: ['Phys DPS: 180–210', 'Crit: 7.5%', 'APS: 1.8', 'ilvl: 68'] },
+      { icon: '🪖', name: 'Veil Mask', rarity: 'rare', cost: '2c', roi: '+120%', roiSign: 1, stats: ['ES: 80', '+42 to Life', 'ilvl: 71'] },
+      { icon: '🧤', name: 'Plague Grip Gloves', rarity: 'rare', cost: '1c', roi: '+200%', roiSign: 1, stats: ['+35 to Dex', '+28 to Life', 'ilvl: 65'] },
+      { icon: '🦺', name: 'Storm Coil Armour', rarity: 'magic', cost: '3c', roi: '-10%', roiSign: -1, stats: ['Armour: 450', 'ES: 120', 'ilvl: 73'] },
+      { icon: '💍', name: 'Coral Ring', rarity: 'rare', cost: '1c', roi: '+180%', roiSign: 1, stats: ['+25 Life Regen', '+18 to Str', 'ilvl: 62'] },
+    ]
+  },
+  {
+    id: 'div-card-flip',
+    name: 'Divine Card Flip',
+    description: 'Tracks divination card sets being sold below the value of their reward. Accounts for set completion cost and reward item liquidity.',
+    maxProfitPrice: '45c',
+    gamblingMethod: 'Tasuni trade — complete divination card sets',
+    materials: [
+      { name: 'The Doctor (9x)', price: '~180c' },
+      { name: 'House of Mirrors (9x)', price: '~2500c' },
+      { name: 'The Fiend (8x)', price: '~60c' },
+    ],
+    notes: 'Check reward item liquidity before buying. Some unique items are hard to flip.',
+    items: [
+      { icon: '🃏', name: 'The Doctor x3', rarity: 'unique', cost: '58c', roi: '+55%', roiSign: 1, stats: ['Set size: 9', 'Reward: Headhunter', 'Completion needed: 6 more'] },
+      { icon: '🃏', name: 'The Fiend x4', rarity: 'magic', cost: '30c', roi: '+25%', roiSign: 1, stats: ['Set size: 8', 'Reward: Headhunter (corrupted)', 'Completion needed: 4 more'] },
+      { icon: '🃏', name: 'The Dragon x6', rarity: 'rare', cost: '12c', roi: '-5%', roiSign: -1, stats: ['Set size: 8', "Reward: Kaom's Heart", 'Completion needed: 2 more'] },
+      { icon: '🃏', name: 'The Witch x5', rarity: 'magic', cost: '8c', roi: '+80%', roiSign: 1, stats: ["Set size: 7", "Reward: Atziri's Acuity", 'Completion needed: 2 more'] },
+      { icon: '🃏', name: 'The Jeweller x8', rarity: 'rare', cost: '18c', roi: '+40%', roiSign: 1, stats: ['Set size: 9', "Reward: 20 Jeweller's Orbs", 'Completion needed: 1 more'] },
+    ]
+  },
+  {
+    id: 'beast-craft',
+    name: 'Beast Crafting',
+    description: 'Monitors specific beasts on the trade API that are priced below what their crafting recipes yield. Focuses on high-value aspect and split/mirror recipes.',
+    maxProfitPrice: '120c',
+    gamblingMethod: 'Menagerie crafting via Einhar',
+    materials: [
+      { name: 'Farric Wolf Alpha', price: '~8c' },
+      { name: 'Craicic Vassal', price: '~15c' },
+      { name: "Saqawal's Flock", price: '~45c' },
+    ],
+    notes: 'Beast prices fluctuate heavily at league start. Check demand before bulk buying.',
+    items: [
+      { icon: '🐺', name: 'Farric Wolf Alpha', rarity: 'unique', cost: '6c', roi: '+150%', roiSign: 1, stats: ['Recipe: Aspect of the Wolf', 'Cooldown: 3s', 'Demand: High'] },
+      { icon: '🦀', name: 'Craicic Chimeral', rarity: 'rare', cost: '22c', roi: '+35%', roiSign: 1, stats: ['Recipe: Remove/Add Prefix', 'Tier: T2', 'Demand: Medium'] },
+      { icon: '🦅', name: "Saqawal's Flock", rarity: 'unique', cost: '38c', roi: '+22%', roiSign: 1, stats: ['Recipe: Aspect of the Avian', 'Cooldown: 4s', 'Demand: High'] },
+      { icon: '🐻', name: 'Ursaite Bear', rarity: 'magic', cost: '5c', roi: '-15%', roiSign: -1, stats: ['Recipe: Aspect of the Ursa', 'Demand: Low', 'Oversupplied'] },
+      { icon: '🦁', name: 'Primal Rhex Matriarch', rarity: 'rare', cost: '18c', roi: '+68%', roiSign: 1, stats: ['Recipe: Imprint (magic)', 'Tier: T1', 'Demand: Very High'] },
+    ]
+  }
+];
+
+function navigate(page, profileId) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  if (page === 'login') {
+    document.getElementById('login-page').classList.add('active');
+  } else if (page === 'overview') {
+    document.getElementById('overview-page').classList.add('active');
+    renderOverview();
+  } else if (page === 'details') {
+    state.currentProfile = profileId;
+    document.getElementById('details-page').classList.add('active');
+    renderDetails(profileId);
+  }
+  closeAllMenus();
+}
+
+function handleProfileNav(val) {
+  if (val) navigate('details', val);
+  document.getElementById('profile-nav').value = '';
+  document.getElementById('profile-nav-2').value = '';
+}
+
+function toggleSettings() { document.getElementById('settings-menu').classList.toggle('open'); }
+function toggleSettings2() { document.getElementById('settings-menu-2').classList.toggle('open'); }
+function closeAllMenus() { document.querySelectorAll('.settings-menu').forEach(m => m.classList.remove('open')); }
+
+function saveSessionId() {
+  const val = document.getElementById('poesessid-input').value.trim();
+  if (val) { state.poesessid = val; document.getElementById('poesessid-input-2').value = val; }
+  document.getElementById('session-status').style.display = 'block';
+  setTimeout(() => closeAllMenus(), 800);
+  renderOverview();
+}
+function saveSessionId2() {
+  const val = document.getElementById('poesessid-input-2').value.trim();
+  if (val) { state.poesessid = val; document.getElementById('poesessid-input').value = val; }
+  document.getElementById('session-status-2').style.display = 'block';
+  setTimeout(() => closeAllMenus(), 800);
+}
+
+function doLogout() { state.poesessid = null; navigate('login'); }
+
+document.getElementById('login-btn').addEventListener('click', () => {
+  const u = document.getElementById('login-user').value.trim();
+  const p = document.getElementById('login-pass').value.trim();
+  const err = document.getElementById('login-error');
+  if (u && p) { state.loggedIn = true; err.style.display = 'none'; navigate('overview'); }
+  else { err.style.display = 'block'; }
+});
+document.getElementById('login-pass').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('login-btn').click();
+});
+document.addEventListener('click', e => {
+  if (!e.target.closest('.settings-btn') && !e.target.closest('.settings-menu')) closeAllMenus();
+});
+
+function makeItemRow(item, hasSession) {
+  const rarityClass = item.rarity === 'unique' ? 'unique' : item.rarity === 'rare' ? 'rare' : '';
+  const statsId = 'stats-' + Math.random().toString(36).slice(2);
+  const roiClass = item.roiSign > 0 ? 'positive' : 'negative';
+  const whisperClass = hasSession ? 'enabled' : 'disabled';
+  const statsHtml = item.stats.map(s => `<div>• ${s}</div>`).join('');
+  return `<div class="item-row" onclick="toggleStats('${statsId}')">
+    <div class="item-icon">${item.icon}</div>
+    <div class="item-info">
+      <div class="item-name ${rarityClass}">${item.name}</div>
+      <div class="item-stats-toggle">▸ stats</div>
+      <div class="item-stats" id="${statsId}"><span>${statsHtml}</span></div>
+    </div>
+    <div class="item-right">
+      <div class="item-price">${item.cost}</div>
+      <div class="item-roi ${roiClass}">ROI ${item.roi}</div>
+      <button class="whisper-btn ${whisperClass}" onclick="event.stopPropagation();">⚡ Whisper</button>
+    </div>
+  </div>`;
+}
+
+function toggleStats(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.toggle('open');
+}
+
+function renderOverview() {
+  const grid = document.getElementById('profiles-grid');
+  grid.innerHTML = profiles.map(p => {
+    const itemsHtml = p.items.slice(0,5).map(item => makeItemRow(item, !!state.poesessid)).join('');
+    return `<div class="profile-card">
+      <div class="profile-card-header">
+        <div class="profile-name">${p.name}</div>
+        <div class="profile-badge">${p.items.length} hits</div>
+      </div>
+      <div class="profile-items">${itemsHtml}</div>
+      <div class="profile-footer">
+        <button class="details-btn" onclick="navigate('details','${p.id}')">View Details →</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderDetails(profileId) {
+  const p = profiles.find(x => x.id === profileId);
+  if (!p) return;
+  const itemsHtml = p.items.map(item => makeItemRow(item, !!state.poesessid)).join('');
+  const matsHtml = p.materials.map(m => `<div class="material-row"><span class="mat-name">${m.name}</span><span class="mat-price">${m.price}</span></div>`).join('');
+  document.getElementById('details-content').innerHTML = `
+    <div class="details-back" onclick="navigate('overview')">← Back to Overview</div>
+    <div class="page-title" style="font-family:var(--font-display);font-size:16px;letter-spacing:2px;color:var(--poe-gold);margin-bottom:20px;">${p.name}</div>
+    <div class="details-layout">
+      <div class="details-sidebar">
+        <div class="info-card">
+          <div class="info-card-title">Profile Description</div>
+          <div class="description-text">${p.description}</div>
+        </div>
+        <div class="info-card">
+          <div class="info-card-title">Profit Thresholds</div>
+          <div class="info-row"><span class="info-key">Max buy price</span><span class="info-val green">${p.maxProfitPrice}</span></div>
+          <div class="info-row"><span class="info-key">Method</span><span class="info-val magic" style="font-size:12px;text-align:right;max-width:150px;">${p.gamblingMethod}</span></div>
+        </div>
+        <div class="info-card">
+          <div class="info-card-title">Related Materials</div>
+          ${matsHtml}
+        </div>
+        <div class="info-card">
+          <div class="info-card-title">Notes</div>
+          <div class="description-text" style="font-style:normal;font-size:13px;">${p.notes}</div>
+        </div>
+      </div>
+      <div class="details-main">
+        <div class="items-card">
+          <div class="items-card-header profile-card-header">
+            <div class="profile-name">Trade Hits</div>
+            <div class="profile-badge"><span class="live-dot"></span>${p.items.length} matching items</div>
+          </div>
+          <div class="profile-items">${itemsHtml}</div>
+        </div>
+      </div>
+    </div>`;
+}
+</script>
+</body>
+</html>

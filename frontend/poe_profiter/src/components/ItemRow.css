@@ -1,0 +1,125 @@
+.item-row {
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid rgba(42, 42, 58, 0.5);
+  cursor: pointer;
+  transition: background 0.1s;
+  position: relative;
+}
+.item-row:last-child {
+  border-bottom: none;
+}
+.item-row:hover {
+  background: rgba(200, 169, 110, 0.04);
+}
+
+.item-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 3px;
+  background: var(--poe-surface);
+  border: 1px solid var(--poe-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+.item-icon img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.item-name {
+  font-size: 14px;
+  color: var(--poe-magic);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.item-name.unique {
+  color: var(--poe-unique);
+}
+.item-name.rare {
+  color: #e8e830;
+}
+
+.item-stats-toggle {
+  font-size: 11px;
+  color: var(--poe-text-dim);
+  cursor: pointer;
+}
+
+.item-stats {
+  display: none;
+  padding: 6px 0;
+  font-size: 12px;
+  color: var(--poe-text-dim);
+  line-height: 1.6;
+}
+.item-stats.open {
+  display: block;
+}
+.item-stats span {
+  color: var(--poe-magic);
+}
+
+.item-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.item-price {
+  font-family: var(--font-display);
+  font-size: 13px;
+  color: var(--poe-amber);
+  white-space: nowrap;
+}
+
+.item-roi {
+  font-size: 11px;
+  white-space: nowrap;
+}
+.item-roi.positive {
+  color: var(--poe-green);
+}
+.item-roi.negative {
+  color: var(--poe-red);
+}
+
+.whisper-btn {
+  padding: 3px 8px;
+  font-size: 10px;
+  border-radius: 2px;
+  cursor: pointer;
+  border: 1px solid;
+  font-family: var(--font-display);
+  letter-spacing: 0.5px;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+.whisper-btn.enabled {
+  background: rgba(90, 170, 255, 0.08);
+  border-color: #2a5a8a;
+  color: var(--poe-blue);
+}
+.whisper-btn.enabled:hover {
+  background: rgba(90, 170, 255, 0.15);
+}
+.whisper-btn.disabled {
+  background: rgba(80, 80, 100, 0.1);
+  border-color: #333345;
+  color: #555570;
+  cursor: not-allowed;
+}

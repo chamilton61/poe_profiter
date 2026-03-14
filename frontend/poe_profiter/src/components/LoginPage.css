@@ -1,0 +1,107 @@
+.login-page {
+  min-height: 100vh;
+  background: var(--poe-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  background-image: radial-gradient(
+    ellipse at 50% 0%,
+    rgba(200, 169, 110, 0.05) 0%,
+    transparent 60%
+  );
+}
+
+.login-orb {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #c8a96e, #5a3a10);
+  margin-bottom: 24px;
+  box-shadow: 0 0 40px rgba(200, 169, 110, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+}
+
+.login-title {
+  font-family: var(--font-display);
+  font-size: 28px;
+  letter-spacing: 4px;
+  color: var(--poe-gold);
+  margin-bottom: 4px;
+}
+
+.login-subtitle {
+  font-size: 14px;
+  color: var(--poe-text-dim);
+  letter-spacing: 2px;
+  margin-bottom: 32px;
+}
+
+.login-card {
+  background: var(--poe-card);
+  border: 1px solid var(--poe-border);
+  border-top: 1px solid var(--poe-gold-dim);
+  border-radius: 4px;
+  padding: 28px 32px;
+  width: 340px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-label {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--poe-gold-dim);
+  margin-bottom: 6px;
+}
+
+.form-input {
+  width: 100%;
+  background: var(--poe-bg);
+  border: 1px solid var(--poe-border);
+  color: var(--poe-text-bright);
+  font-family: var(--font-body);
+  font-size: 16px;
+  padding: 9px 12px;
+  border-radius: 3px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.form-input:focus {
+  border-color: var(--poe-gold-dim);
+}
+
+.login-btn {
+  width: 100%;
+  padding: 10px;
+  margin-top: 8px;
+  background: linear-gradient(135deg, #3a2a10, #5a4020);
+  border: 1px solid var(--poe-gold-dim);
+  color: var(--poe-gold);
+  font-family: var(--font-display);
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+.login-btn:hover {
+  background: linear-gradient(135deg, #4a3a1a, #6a5030);
+  box-shadow: 0 0 16px rgba(200, 169, 110, 0.15);
+}
+
+.login-error {
+  color: var(--poe-red);
+  font-size: 13px;
+  margin-top: 8px;
+  text-align: center;
+}

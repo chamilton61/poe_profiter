@@ -1,0 +1,140 @@
+.details-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.details-back {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-display);
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--poe-gold-dim);
+  cursor: pointer;
+  margin-bottom: 20px;
+  width: fit-content;
+}
+.details-back:hover {
+  color: var(--poe-gold);
+}
+
+.details-page-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  letter-spacing: 2px;
+  color: var(--poe-gold);
+  margin-bottom: 20px;
+}
+
+.details-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 20px;
+}
+@media (max-width: 700px) {
+  .details-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.details-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.info-card {
+  background: var(--poe-card);
+  border: 1px solid var(--poe-border);
+  border-radius: 4px;
+  padding: 14px 16px;
+}
+
+.info-card-title {
+  font-family: var(--font-display);
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--poe-gold-dim);
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--poe-border);
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 6px;
+  font-size: 14px;
+}
+
+.info-key {
+  color: var(--poe-text-dim);
+}
+
+.info-val {
+  color: var(--poe-text-bright);
+  font-weight: 600;
+}
+.info-val.green {
+  color: var(--poe-green);
+}
+.info-val.magic {
+  color: var(--poe-magic);
+  font-size: 12px;
+  text-align: right;
+  max-width: 150px;
+}
+
+.description-text {
+  font-size: 14px;
+  color: var(--poe-text);
+  line-height: 1.7;
+  font-style: italic;
+}
+
+.notes-text {
+  font-style: normal;
+  font-size: 13px;
+}
+
+.material-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(42, 42, 58, 0.4);
+  font-size: 13px;
+}
+.material-row:last-child {
+  border-bottom: none;
+}
+
+.mat-name {
+  color: var(--poe-text);
+}
+
+.mat-price {
+  color: var(--poe-amber);
+  font-family: var(--font-display);
+  font-size: 12px;
+}
+
+.details-main {
+  min-width: 0;
+}
+
+.items-card {
+  background: var(--poe-card);
+  border: 1px solid var(--poe-border);
+  border-radius: 4px;
+}
+
+.items-card-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--poe-border);
+}
