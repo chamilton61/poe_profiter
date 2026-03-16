@@ -4,18 +4,21 @@ on:
   pull_request: 
     branches:
       - main
+    types: 
+      - opened
+      - synchronize
+      - closed
     paths:
       - 'frontend/**'
   workflow_dispatch:
 
 jobs:
   frontend-checks:
+    if: github.event.action == 'opened' || github.event.action == 'synchronize'
     runs-on: ubuntu-24.04
-
     defaults:
       run:
         working-directory: frontend/poe_profiter
-
     strategy:
       fail-fast: false
       matrix:
@@ -23,10 +26,14 @@ jobs:
           - format:check
           - type-check
           - lint
-
+          - test
     steps:
-      - name: Checkout repo
+      - name: Checkout pr branch
         uses: actions/checkout@v6
+        with: 
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          fetch-depth: 0
 
       - name: Setup Node
         uses: actions/setup-node@v6.2.0
@@ -37,3 +44,77 @@ jobs:
 
       - run: npm ci
       - run: npm run ${{ matrix.command }}
+  
+  build-preview:
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    needs: frontend-checks
+    defaults:
+      run:
+        working-directory: frontend/poe_profiter
+    steps:
+      - name: Checkout pr branch
+        uses: actions/checkout@v6
+        with: 
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v6.2.0
+        with:
+          node-version: 24
+          cache: 'npm'
+          cache-dependency-path: frontend/poe_profiter/package-lock.json
+
+      - run: npm ci      
+      - run: npm run build
+
+      - name: Deploy PR preview
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./frontend/poe_profiter/dist
+          destination_dir: pr-${{ github.event.pull_request.number }}
+
+      - name: Comment preview URL
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const url = `https://${context.repo.owner}.github.io/${context.repo.repo}/pr-${context.issue.number}/`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `Preview deployed: ${url}`
+            });
+
+  close-preview:
+    runs-on: ubuntu-slim
+    permissions:
+      contents: write
+    if: github.event.action == 'closed'
+    steps:
+      - name: Checkout gh-pages branch
+        uses: actions/checkout@v6
+        with:
+          ref: gh-pages   # Checkout the gh-pages branch
+          fetch-depth: 0  # Full history needed to push deletes
+
+      - name: Remove PR folder
+        run: |
+          echo "Deleting PR preview folder for PR #${{ github.event.pull_request.number }}"
+          rm -rf pr-${{ github.event.pull_request.number }}
+
+      - name: Commit and push deletion
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Remove preview for PR #${{ github.event.pull_request.number }}" || echo "Nothing to commit"
+          git push origin gh-pages
+    

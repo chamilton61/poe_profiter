@@ -1,4 +1,6 @@
 .vite/
+coverage/
 eslint.config.js
 README.md
 vite.config.ts
+jest.config.ts
