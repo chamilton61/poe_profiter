@@ -1,66 +1,35 @@
 import { useState } from 'react';
+import reactLogo from './assets/react.svg';
+import viteLogo from '/vite.svg';
 import './App.css';
-import { profiles } from './data/profiles';
-import type { Page } from './types';
-import LoginPage from './components/LoginPage';
-import OverviewPage from './components/OverviewPage';
-import DetailsPage from './components/DetailsPage';
 
-export default function App() {
-  const [page, setPage] = useState<Page>('login');
-  const [poesessid, setPoesessid] = useState<string | null>(null);
-  const [league, setLeague] = useState('Standard');
-  const [currentProfileId, setCurrentProfileId] = useState<string | null>(null);
-
-  function navigateOverview() {
-    setPage('overview');
-  }
-
-  function navigateProfile(profileId: string) {
-    setCurrentProfileId(profileId);
-    setPage('details');
-  }
-
-  function handleLogin() {
-    setPage('overview');
-  }
-
-  function handleLogout() {
-    setPoesessid(null);
-    setPage('login');
-  }
-
-  const currentProfile = profiles.find((p) => p.id === currentProfileId);
-
-  if (page === 'login') {
-    return <LoginPage onLogin={handleLogin} />;
-  }
-
-  if (page === 'details' && currentProfile) {
-    return (
-      <DetailsPage
-        profile={currentProfile}
-        profiles={profiles}
-        league={league}
-        poesessid={poesessid}
-        onNavigateOverview={navigateOverview}
-        onNavigateProfile={navigateProfile}
-        onSaveSessionId={setPoesessid}
-        onLeagueChange={setLeague}
-        onLogout={handleLogout}
-      />
-    );
-  }
+function App() {
+  const [count, setCount] = useState(0);
 
   return (
-    <OverviewPage
-      profiles={profiles}
-      league={league}
-      poesessid={poesessid}
-      onNavigateProfile={navigateProfile}
-      onSaveSessionId={setPoesessid}
-      onLeagueChange={setLeague}
-      onLogout={handleLogout}
-    />
+    <>
+      <div>
+        <a href="https://vite.dev" target="_blank">
+          <img src={viteLogo} className="logo" alt="Vite logo" />
+        </a>
+        <a href="https://react.dev" target="_blank">
+          <img src={reactLogo} className="logo react" alt="React logo" />
+        </a>
+      </div>
+      <h1>Vite + React</h1>
+      <div className="card">
+        <button onClick={() => setCount((count) => count + 1)}>
+          count is {count}
+        </button>
+        <p>
+          Edit <code>src/App.tsx</code> and save to test HMR
+        </p>
+      </div>
+      <p className="read-the-docs">
+        Click on the Vite and React logos to learn more
+      </p>
+    </>
   );
 }
+
+export default App;
