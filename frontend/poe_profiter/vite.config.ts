@@ -10,5 +10,8 @@ export default defineConfig({
       },
     }),
   ],
+  server: {
+    allowedHosts: ['poeprofiter.com'],
+  },
   base: './'
 })

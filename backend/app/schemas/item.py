@@ -5,6 +5,7 @@ from pydantic import BaseModel, ConfigDict
 
 class PriceBase(BaseModel):
     """Base schema for Price."""
+    price_type: str
     price: float
     currency: str
 
@@ -24,9 +25,13 @@ class Price(PriceBase):
 
 class ItemBase(BaseModel):
     """Base schema for Item."""
-    name: str
+    poe_id: str
+    name: Optional[str] = None
+    base_type: str
     category: str
-    base_type: Optional[str] = None
+    seller_account: str
+    indexed_at: datetime
+    item_snapshot: dict
 
 
 class ItemCreate(ItemBase):
@@ -41,3 +46,27 @@ class Item(ItemBase):
     created_at: datetime
     updated_at: Optional[datetime] = None
     prices: List[Price] = []
+
+
+class TradeSearchRequest(BaseModel):
+    """Input schema for the trade search endpoint."""
+    poesessid: Optional[str] = None
+    league: str
+    name: Optional[str] = None
+    type: Optional[str] = None
+    min_price: Optional[float] = None
+    max_price: Optional[float] = None
+    currency: Optional[str] = None
+    status: str = "online"
+    page_size: int = 10
+    page_offset: int = 0
+    raw_query: Optional[dict] = None
+
+
+class TradeSearchResponse(BaseModel):
+    """Response schema for the trade search endpoint."""
+    total: int
+    page_size: int
+    page_offset: int
+    returned: int
+    items: List[Item]
