@@ -1,7 +1,5 @@
 from unittest.mock import AsyncMock, patch
 
-import pytest
-
 SEARCH_RESPONSE = {
     "id": "query123",
     "result": ["id1", "id2"],

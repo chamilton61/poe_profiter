@@ -2,13 +2,12 @@ from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
+from datetime import datetime
 
 import httpx
 
 from app.core.config import settings
 from app.core.database import get_db, engine, Base
-from app.models import item as models
 from app.schemas import item as schemas
 from app.repositories.item import ItemRepository, PriceRepository
 from app.services import poe_trade
