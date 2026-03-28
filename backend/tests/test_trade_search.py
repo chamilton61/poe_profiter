@@ -108,7 +108,10 @@ def test_trade_search_pagination(client):
 
 
 def test_trade_search_raw_query(client):
-    raw = {"query": {"status": {"option": "any"}, "stats": []}, "sort": {"price": "asc"}}
+    raw = {
+        "query": {"status": {"option": "any"}, "stats": []},
+        "sort": {"price": "asc"},
+    }
     with mock_poe_trade():
         response = client.post(
             "/trade/search",

@@ -22,7 +22,9 @@ class PriceRepository(BaseRepository[Price]):
     def __init__(self, db: Session):
         super().__init__(Price, db)
 
-    def get_by_item_id(self, item_id: int, skip: int = 0, limit: int = 100) -> List[Price]:
+    def get_by_item_id(
+        self, item_id: int, skip: int = 0, limit: int = 100
+    ) -> List[Price]:
         """Get prices for a specific item."""
         return (
             self.db.query(self.model)

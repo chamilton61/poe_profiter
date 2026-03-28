@@ -8,20 +8,21 @@ ModelType = TypeVar("ModelType", bound=Base)
 
 class BaseRepository(Generic[ModelType]):
     """Base repository with common CRUD operations."""
-    #TODO: have commits be done in a context wrapper so we can chain repo actions without commiting to the db.
-    
+
+    # TODO: have commits be done in a context wrapper so we can chain repo actions without commiting to the db.
+
     def __init__(self, model: Type[ModelType], db: Session):
         self.model = model
         self.db = db
-    
+
     def get(self, id: int) -> Optional[ModelType]:
         """Get a single record by ID."""
         return self.db.query(self.model).filter(self.model.id == id).first()
-    
+
     def get_all(self, skip: int = 0, limit: int = 100) -> List[ModelType]:
         """Get all records with pagination."""
         return self.db.query(self.model).offset(skip).limit(limit).all()
-    
+
     def create(self, obj_in: dict) -> ModelType:
         """Create a new record."""
         db_obj = self.model(**obj_in)
@@ -29,7 +30,7 @@ class BaseRepository(Generic[ModelType]):
         self.db.commit()
         self.db.refresh(db_obj)
         return db_obj
-    
+
     def update(self, id: int, obj_in: dict) -> Optional[ModelType]:
         """Update an existing record."""
         db_obj = self.get(id)
@@ -39,7 +40,7 @@ class BaseRepository(Generic[ModelType]):
             self.db.commit()
             self.db.refresh(db_obj)
         return db_obj
-    
+
     def delete(self, id: int) -> bool:
         """Delete a record."""
         db_obj = self.get(id)
