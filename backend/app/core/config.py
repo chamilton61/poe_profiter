@@ -1,4 +1,4 @@
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -9,8 +9,8 @@ class Settings(BaseSettings):
     # In production, set DATABASE_URL via environment variables.
     database_url: str = "postgresql://poe_user:poe_password@db:5432/poe_profiter"
     
-    class Config:
+    model_config = SettingsConfigDict(
         env_file = ".env"
-
+    )
 
 settings = Settings()
