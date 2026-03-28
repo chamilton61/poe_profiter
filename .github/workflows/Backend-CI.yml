@@ -24,6 +24,7 @@ jobs:
       matrix:
         command:
           - ruff check .
+          - ruff format --check
           - mypy .
           - pytest
     steps:
