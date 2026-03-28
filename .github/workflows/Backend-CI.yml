@@ -22,11 +22,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        command:
-          - ruff check .
-          - ruff format --check
-          - mypy .
-          - pytest
+        include:
+        - command: ruff check .
+          display_name: "Lint"
+        - command: ruff format --check
+          display_name: "Format Check"
+        - command: mypy .
+          display_name: "Type Checking"
+        - command: pytest
+          display_name: "Run Tests"
     steps:
       - name: Checkout pr branch
         uses: actions/checkout@v6
