@@ -16,7 +16,9 @@ def _headers(poesessid: Optional[str]) -> dict:
     return headers
 
 
-async def search(league: str, query_body: dict, poesessid: Optional[str] = None) -> dict:
+async def search(
+    league: str, query_body: dict, poesessid: Optional[str] = None
+) -> dict:
     """POST /api/trade2/search/poe2/{league} — returns {id, result[], total}."""
     url = f"{BASE_URL}/search/poe2/{league}"
     async with httpx.AsyncClient() as client:
@@ -25,7 +27,9 @@ async def search(league: str, query_body: dict, poesessid: Optional[str] = None)
         return response.json()
 
 
-async def fetch(item_ids: List[str], query_id: str, poesessid: Optional[str] = None) -> List[dict]:
+async def fetch(
+    item_ids: List[str], query_id: str, poesessid: Optional[str] = None
+) -> List[dict]:
     """GET /api/trade2/fetch/{ids}?query={query_id} — returns list of full listing objects."""
     ids_param = ",".join(item_ids)
     url = f"{BASE_URL}/fetch/{ids_param}"

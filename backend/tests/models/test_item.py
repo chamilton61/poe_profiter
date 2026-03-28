@@ -22,7 +22,9 @@ def test_item_create(db):
 
 
 def test_price_create(db, sample_item):
-    price = Price(item_id=sample_item.id, price_type="~price", price=42.5, currency="chaos")
+    price = Price(
+        item_id=sample_item.id, price_type="~price", price=42.5, currency="chaos"
+    )
     db.add(price)
     db.commit()
     db.refresh(price)
