@@ -198,5 +198,5 @@ async def trade_search(req: schemas.TradeSearchRequest, db: Session = Depends(ge
         page_size=page_size,
         page_offset=req.page_offset,
         returned=len(result_items),
-        items=result_items,
+        items=[schemas.Item.model_validate(i) for i in result_items],
     )
