@@ -1,0 +1,45 @@
+name: Backend CI
+
+on:
+  pull_request: 
+    branches:
+      - main
+    types: 
+      - opened
+      - synchronize
+      - closed
+    paths:
+      - 'backend/**'
+  workflow_dispatch:
+
+jobs:
+  backend-checks:
+    if: github.event.action == 'opened' || github.event.action == 'synchronize'
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: backend
+    strategy:
+      fail-fast: false
+      matrix:
+        command:
+          - ruff check .
+          - mypy .
+          - pytest
+    steps:
+      - name: Checkout pr branch
+        uses: actions/checkout@v6
+        with: 
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          fetch-depth: 0
+
+      - name: Setup Uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          version: "0.10.7"
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - run: uv run ${{ matrix.command }}
