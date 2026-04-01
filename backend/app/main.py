@@ -149,13 +149,13 @@ async def trade_search(req: schemas.TradeSearchRequest, db: Session = Depends(ge
     ids_to_fetch = all_ids[req.page_offset : req.page_offset + page_size]
 
     if not ids_to_fetch:
-        return {
-            "total": total,
-            "page_size": page_size,
-            "page_offset": req.page_offset,
-            "returned": 0,
-            "items": [],
-        }
+        return schemas.TradeSearchResponse(
+            total=total,
+            page_size=page_size,
+            page_offset=req.page_offset,
+            returned=0,
+            items=[],
+        )
 
     try:
         listings = await poe_trade.fetch(ids_to_fetch, query_id, req.poesessid)
@@ -205,10 +205,10 @@ async def trade_search(req: schemas.TradeSearchRequest, db: Session = Depends(ge
         db.refresh(item)
         result_items.append(item)
 
-    return {
-        "total": total,
-        "page_size": page_size,
-        "page_offset": req.page_offset,
-        "returned": len(result_items),
-        "items": result_items,
-    }
+    return schemas.TradeSearchResponse(
+        total=total,
+        page_size=page_size,
+        page_offset=req.page_offset,
+        returned=len(result_items),
+        items=[schemas.Item.model_validate(i) for i in result_items],
+    )
