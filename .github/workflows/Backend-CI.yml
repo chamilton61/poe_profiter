@@ -23,14 +23,15 @@ jobs:
       fail-fast: false
       matrix:
         include:
-        - command: ruff check .
-          display_name: "Lint"
-        - command: ruff format --check
-          display_name: "Format Check"
-        - command: mypy .
-          display_name: "Type Checking"
-        - command: pytest
-          display_name: "Run Tests"
+        - name: "Ruff Format Check"
+          cmd: "ruff format --check"
+        - name: "Ruff Lint"
+          cmd: "ruff check ."
+        - name: "Mypy Type Check"
+          cmd: "mypy ."
+        - name: "Pytest Tests"
+          cmd: "pytest"
+    name: ${{ matrix.name }} 
     steps:
       - name: Checkout pr branch
         uses: actions/checkout@v6
@@ -47,4 +48,5 @@ jobs:
       - name: Install dependencies
         run: uv sync --frozen
 
-      - run: uv run ${{ matrix.command }}
+      - name: ${{ matrix.name }}
+        run: uv run ${{ matrix.cmd }}
