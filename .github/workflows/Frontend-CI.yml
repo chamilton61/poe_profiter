@@ -22,11 +22,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        command:
-          - format:check
-          - type-check
-          - lint
-          - test
+        include:
+          - name: "Format Check"
+            cmd: "format:check"
+          - name: "Type Check"
+            cmd: "type-check"
+          - name: "Lint"
+            cmd: "lint"
+          - name: "Tests"
+            cmd: "test"
+    name: ${{ matrix.name }}
     steps:
       - name: Checkout pr branch
         uses: actions/checkout@v6
@@ -43,7 +48,7 @@ jobs:
           cache-dependency-path: frontend/poe_profiter/package-lock.json
 
       - run: npm ci
-      - run: npm run ${{ matrix.command }}
+      - run: npm run ${{ matrix.cmd }}
   
   build-preview:
     runs-on: ubuntu-22.04
