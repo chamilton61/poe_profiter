@@ -39,6 +39,13 @@ def test_price_get_by_item_id(db, sample_item, sample_price):
 def test_price_get_by_item_id_pagination(db, sample_item):
     repo = PriceRepository(db)
     for i in range(4):
-        repo.create({"item_id": sample_item.id, "price_type": "~price", "price": float(i), "currency": "chaos"})
+        repo.create(
+            {
+                "item_id": sample_item.id,
+                "price_type": "~price",
+                "price": float(i),
+                "currency": "chaos",
+            }
+        )
     page = repo.get_by_item_id(sample_item.id, skip=1, limit=2)
     assert len(page) == 2

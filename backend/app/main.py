@@ -2,13 +2,12 @@ from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
+from datetime import datetime
 
 import httpx
 
 from app.core.config import settings
 from app.core.database import get_db, engine, Base
-from app.models import item as models
 from app.schemas import item as schemas
 from app.repositories.item import ItemRepository, PriceRepository
 from app.services import poe_trade
@@ -74,15 +73,16 @@ def read_item(item_id: int, db: Session = Depends(get_db)):
     return item
 
 
-
 # Price endpoints
 @app.post("/items/{item_id}/prices/", response_model=schemas.Price)
-def create_price(item_id: int, price: schemas.PriceCreate, db: Session = Depends(get_db)):
+def create_price(
+    item_id: int, price: schemas.PriceCreate, db: Session = Depends(get_db)
+):
     """Create a new price for an item."""
     item_repo = ItemRepository(db)
     if not item_repo.get(item_id):
         raise HTTPException(status_code=404, detail="Item not found")
-    
+
     price_repo = PriceRepository(db)
     price_data = price.model_dump()
     price_data["item_id"] = item_id
@@ -90,7 +90,9 @@ def create_price(item_id: int, price: schemas.PriceCreate, db: Session = Depends
 
 
 @app.get("/items/{item_id}/prices/", response_model=List[schemas.Price])
-def read_prices_for_item(item_id: int, skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+def read_prices_for_item(
+    item_id: int, skip: int = 0, limit: int = 100, db: Session = Depends(get_db)
+):
     """Get all prices for a specific item."""
     item_repo = ItemRepository(db)
     if not item_repo.get(item_id):
@@ -135,14 +137,16 @@ async def trade_search(req: schemas.TradeSearchRequest, db: Session = Depends(ge
     try:
         search_result = await poe_trade.search(req.league, query_body, req.poesessid)
     except httpx.HTTPStatusError as e:
-        raise HTTPException(status_code=502, detail=f"PoE trade search failed: {e.response.status_code}")
+        raise HTTPException(
+            status_code=502, detail=f"PoE trade search failed: {e.response.status_code}"
+        )
 
     all_ids: List[str] = search_result.get("result", [])
     total: int = search_result.get("total", 0)
     query_id: str = search_result["id"]
 
     page_size = max(1, min(req.page_size, 10))
-    ids_to_fetch = all_ids[req.page_offset: req.page_offset + page_size]
+    ids_to_fetch = all_ids[req.page_offset : req.page_offset + page_size]
 
     if not ids_to_fetch:
         return schemas.TradeSearchResponse(
@@ -156,7 +160,9 @@ async def trade_search(req: schemas.TradeSearchRequest, db: Session = Depends(ge
     try:
         listings = await poe_trade.fetch(ids_to_fetch, query_id, req.poesessid)
     except httpx.HTTPStatusError as e:
-        raise HTTPException(status_code=502, detail=f"PoE trade fetch failed: {e.response.status_code}")
+        raise HTTPException(
+            status_code=502, detail=f"PoE trade fetch failed: {e.response.status_code}"
+        )
 
     item_repo = ItemRepository(db)
     price_repo = PriceRepository(db)
@@ -172,23 +178,29 @@ async def trade_search(req: schemas.TradeSearchRequest, db: Session = Depends(ge
 
         item = item_repo.get_by_poe_id(poe_id)
         if item is None:
-            item = item_repo.create({
-                "poe_id": poe_id,
-                "name": raw_item.get("name") or None,
-                "base_type": raw_item.get("typeLine", ""),
-                "category": category,
-                "seller_account": listing["account"]["name"],
-                "indexed_at": datetime.fromisoformat(listing["indexed"].replace("Z", "+00:00")),
-                "item_snapshot": snapshot,
-            })
+            item = item_repo.create(
+                {
+                    "poe_id": poe_id,
+                    "name": raw_item.get("name") or None,
+                    "base_type": raw_item.get("typeLine", ""),
+                    "category": category,
+                    "seller_account": listing["account"]["name"],
+                    "indexed_at": datetime.fromisoformat(
+                        listing["indexed"].replace("Z", "+00:00")
+                    ),
+                    "item_snapshot": snapshot,
+                }
+            )
 
         price_data = listing["price"]
-        price_repo.create({
-            "item_id": item.id,
-            "price_type": price_data.get("type", "~price"),
-            "price": price_data["amount"],
-            "currency": price_data["currency"],
-        })
+        price_repo.create(
+            {
+                "item_id": item.id,
+                "price_type": price_data.get("type", "~price"),
+                "price": price_data["amount"],
+                "currency": price_data["currency"],
+            }
+        )
 
         db.refresh(item)
         result_items.append(item)
@@ -198,5 +210,5 @@ async def trade_search(req: schemas.TradeSearchRequest, db: Session = Depends(ge
         page_size=page_size,
         page_offset=req.page_offset,
         returned=len(result_items),
-        items=result_items,
+        items=[schemas.Item.model_validate(i) for i in result_items],
     )

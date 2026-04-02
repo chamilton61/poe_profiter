@@ -1,7 +1,5 @@
 from unittest.mock import AsyncMock, patch
 
-import pytest
-
 SEARCH_RESPONSE = {
     "id": "query123",
     "result": ["id1", "id2"],
@@ -110,7 +108,10 @@ def test_trade_search_pagination(client):
 
 
 def test_trade_search_raw_query(client):
-    raw = {"query": {"status": {"option": "any"}, "stats": []}, "sort": {"price": "asc"}}
+    raw = {
+        "query": {"status": {"option": "any"}, "stats": []},
+        "sort": {"price": "asc"},
+    }
     with mock_poe_trade():
         response = client.post(
             "/trade/search",
